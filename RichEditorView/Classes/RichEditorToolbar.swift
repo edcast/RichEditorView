@@ -167,7 +167,8 @@ import UIKit
         }
         
         for item in items where item.tag == tag {
-            item.tintColor = color
+            guard let customButton = item.customView as? UIButton else { continue }
+            customButton.tintColor = color
             return
         }
     }
@@ -178,7 +179,8 @@ import UIKit
         }
 
         for item in items where item.tag == tag {
-            item.image = image
+            guard let customButton = item.customView as? UIButton else { continue }
+            customButton.setImage(image, for: .normal)
             return
         }
     }
