@@ -29,17 +29,23 @@ import UIKit
     open var actionHandler: (() -> Void)?
     
     public convenience init(image: UIImage? = nil, handler: (() -> Void)? = nil) {
-        self.init(image: image, style: .plain, target: nil, action: nil)
+        let button = UIButton(type: .system)
+        self.init(customView: button)
         target = self
         action = #selector(RichBarButtonItem.buttonWasTapped)
         actionHandler = handler
+        button.setImage(image, for: .normal)
+        button.addTarget(self, action: #selector(RichBarButtonItem.buttonWasTapped), for: .touchUpInside)
     }
     
     public convenience init(title: String = "", handler: (() -> Void)? = nil) {
-        self.init(title: title, style: .plain, target: nil, action: nil)
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        self.init(customView: button)
         target = self
         action = #selector(RichBarButtonItem.buttonWasTapped)
         actionHandler = handler
+        button.addTarget(self, action: #selector(RichBarButtonItem.buttonWasTapped), for: .touchUpInside)
     }
     
     @objc func buttonWasTapped() {
@@ -123,11 +129,7 @@ import UIKit
                 }
             }
 
-            if option is RichEditorOptionFlexibleSpace {
-                let flexibleSpaceBarButtonItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-                flexibleSpaceBarButtonItem.tag = -1
-                buttons.append(flexibleSpaceBarButtonItem)
-            } else if let image = option.image {
+            if let image = option.image {
                 let button = RichBarButtonItem(image: image, handler: handler)
                 button.tag = option.tag
                 buttons.append(button)
@@ -137,16 +139,21 @@ import UIKit
                 button.tag = option.tag
                 buttons.append(button)
             }
+            buttons.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
+        }
+        if !buttons.isEmpty {
+            buttons.removeLast()
         }
         toolbar.items = buttons
 
         let defaultIconWidth: CGFloat = 28
-        let barButtonItemMargin: CGFloat = 11
-        let width: CGFloat = buttons.reduce(0) {sofar, new in
-            if new.tag == -1 {
-                return sofar
-            } else if let view = new.value(forKey: "view") as? UIView {
-                return sofar + view.frame.size.width + barButtonItemMargin
+        let barButtonItemMargin: CGFloat = 0
+        let width: CGFloat = buttons.reduce(0) {sofar, barButtonItem in
+            if let button = barButtonItem.customView as? UIButton, let image = button.imageView?.image {
+                return sofar + (image.size.width + barButtonItemMargin)
+            } else if let button = barButtonItem.customView as? UIButton, let titleLabel = button.titleLabel {
+                titleLabel.sizeToFit()
+                return sofar + (titleLabel.frame.width + barButtonItemMargin)
             } else {
                 return sofar + (defaultIconWidth + barButtonItemMargin)
             }
