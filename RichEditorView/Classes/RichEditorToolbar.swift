@@ -191,4 +191,16 @@ import UIKit
             return
         }
     }
+
+    public func setEnabled(enabled: Bool, toTag tag: Int) {
+        guard let items = toolbar.items else {
+            return
+        }
+
+        for item in items where item.tag == tag {
+            guard let customButton = item.customView as? UIButton else { continue }
+            customButton.isEnabled = enabled
+            return
+        }
+    }
 }
