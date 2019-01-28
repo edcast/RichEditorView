@@ -187,7 +187,9 @@ import UIKit
 
         for item in items where item.tag == tag {
             guard let customButton = item.customView as? UIButton else { continue }
+            let previousToolbarFrame = toolbar.frame
             customButton.setImage(image, for: .normal)
+            toolbar.frame = previousToolbarFrame
             return
         }
     }
@@ -199,7 +201,9 @@ import UIKit
 
         for item in items where item.tag == tag {
             guard let customButton = item.customView as? UIButton else { continue }
+            let previousToolbarFrame = toolbar.frame
             customButton.isEnabled = enabled
+            toolbar.frame = previousToolbarFrame
             return
         }
     }
