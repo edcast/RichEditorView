@@ -192,6 +192,8 @@ import UIKit
             toolbar.frame = previousToolbarFrame
             return
         }
+
+        toolbar.setItems(items, animated: false)
     }
 
     public func setEnabled(enabled: Bool, toTag tag: Int) {
@@ -205,7 +207,8 @@ import UIKit
             print(previousToolbarFrame)
             customButton.isEnabled = enabled
             toolbar.frame = previousToolbarFrame
-            return
         }
+
+        toolbar.setItems(items, animated: false)
     }
 }
