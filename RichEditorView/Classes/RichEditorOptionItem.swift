@@ -14,6 +14,8 @@ public protocol RichEditorOption {
     /// The image to be displayed in the RichEditorToolbar.
     var image: UIImage? { get }
 
+    var button: UIButton? { get }
+
     /// The title of the item.
     /// If `image` is nil, this will be used for display in the RichEditorToolbar.
     var title: String { get }
@@ -33,6 +35,8 @@ public struct RichEditorOptionItem: RichEditorOption {
     /// The image that should be shown when displayed in the RichEditorToolbar.
     public var image: UIImage?
 
+    public var button: UIButton?
+
     /// If an `itemImage` is not specified, this is used in display
     public var title: String
     
@@ -43,6 +47,13 @@ public struct RichEditorOptionItem: RichEditorOption {
 
     public init(image: UIImage?, title: String, tag: Int, action: @escaping ((RichEditorToolbar) -> Void)) {
         self.image = image
+        self.title = title
+        self.tag = tag
+        self.handler = action
+    }
+
+    public init(button: UIButton?, title: String, tag: Int, action: @escaping ((RichEditorToolbar) -> Void)) {
+        self.button = button
         self.title = title
         self.tag = tag
         self.handler = action
@@ -91,6 +102,10 @@ public enum RichEditorDefaultOption: RichEditorOption {
     ]
 
     // MARK: RichEditorOption
+
+    public var button: UIButton? {
+        return nil
+    }
 
     public var image: UIImage? {
         var name = ""

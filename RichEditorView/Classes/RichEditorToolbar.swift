@@ -137,7 +137,12 @@ import UIKit
                 }
             }
 
-            if let image = option.image {
+            if let button = option.button {
+                let richBarButtonItem = RichBarButtonItem(button: button, handler: handler)
+                richBarButtonItem.tag = option.tag
+                buttons.append(richBarButtonItem)
+            }
+            else if let image = option.image {
                 let button = RichBarButtonItem(image: image, handler: handler)
                 button.tag = option.tag
                 buttons.append(button)
