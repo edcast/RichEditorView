@@ -47,6 +47,14 @@ import UIKit
         actionHandler = handler
         button.addTarget(self, action: #selector(RichBarButtonItem.buttonWasTapped), for: .touchUpInside)
     }
+
+    public convenience init(button: UIButton, handler: (() -> Void)? = nil) {
+        self.init(customView: button)
+        target = self
+        action = #selector(RichBarButtonItem.buttonWasTapped)
+        actionHandler = handler
+        button.addTarget(self, action: #selector(RichBarButtonItem.buttonWasTapped), for: .touchUpInside)
+    }
     
     @objc func buttonWasTapped() {
         actionHandler?()
