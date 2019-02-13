@@ -47,6 +47,14 @@ import UIKit
         actionHandler = handler
         button.addTarget(self, action: #selector(RichBarButtonItem.buttonWasTapped), for: .touchUpInside)
     }
+
+    public convenience init(button: UIButton, handler: (() -> Void)? = nil) {
+        self.init(customView: button)
+        target = self
+        action = #selector(RichBarButtonItem.buttonWasTapped)
+        actionHandler = handler
+        button.addTarget(self, action: #selector(RichBarButtonItem.buttonWasTapped), for: .touchUpInside)
+    }
     
     @objc func buttonWasTapped() {
         actionHandler?()
@@ -129,7 +137,12 @@ import UIKit
                 }
             }
 
-            if let image = option.image {
+            if let button = option.button {
+                let richBarButtonItem = RichBarButtonItem(button: button, handler: handler)
+                richBarButtonItem.tag = option.tag
+                buttons.append(richBarButtonItem)
+            }
+            else if let image = option.image {
                 let button = RichBarButtonItem(image: image, handler: handler)
                 button.tag = option.tag
                 buttons.append(button)
