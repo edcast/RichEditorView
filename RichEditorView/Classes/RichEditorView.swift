@@ -52,7 +52,7 @@ import WebKit
     }
 
     /// The internal WKWebView that is used to display the text.
-    open private(set) var webView: WKWebView
+    open private(set) var webView: WKWebView!
 
     /// Whether or not scroll is enabled on the view.
     open var isScrollEnabled: Bool = true {
@@ -133,15 +133,21 @@ import WebKit
     }
     
     private func setup() {
+        let jScript = "var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);";
+
+        let wkUScript = WKUserScript(source: jScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        let wkUController = WKUserContentController()
+        wkUController.addUserScript(wkUScript)
+
         let configuration = WKWebViewConfiguration()
+        configuration.userContentController = wkUController
         if #available(iOS 10.0, *) {
             configuration.dataDetectorTypes = .all
         }
         
-        webView = WKWebView()
+        webView = WKWebView(frame: bounds, configuration: configuration)
         backgroundColor = .red
         
-        webView.frame = bounds
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.backgroundColor = .white
         webView.navigationDelegate = self
@@ -157,7 +163,7 @@ import WebKit
         if let filePath = Bundle(for: RichEditorView.self).path(forResource: "rich_editor", ofType: "html") {
             let url = URL(fileURLWithPath: filePath, isDirectory: false)
             let request = URLRequest(url: url)
-            webView.loadRequest(request)
+            webView.load(request)
         }
 
         tapRecognizer.addTarget(self, action: #selector(viewWasTapped))

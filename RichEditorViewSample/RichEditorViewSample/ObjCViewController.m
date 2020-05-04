@@ -7,7 +7,6 @@
 //
 
 #import "ObjCViewController.h"
-#import <RichEditorView/RichEditorView-Swift.h>
 #import "RichEditorViewSample-Swift.h"
 
 @interface ObjCViewController() <RichEditorDelegate>
