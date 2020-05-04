@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import WebKit
 
 /// RichEditorDelegate defines callbacks for the delegate of the RichEditorView
 @objc public protocol RichEditorDelegate: class {
@@ -25,10 +24,10 @@ import WebKit
     @objc optional func richEditorLostFocus(_ editor: RichEditorView)
     
     /// Called when the RichEditorView has become ready to receive input
-    /// More concretely, is called when the internal WKWebView loads for the first time, and contentHTML is set
+    /// More concretely, is called when the internal UIWebView loads for the first time, and contentHTML is set
     @objc optional func richEditorDidLoad(_ editor: RichEditorView)
     
-    /// Called when the internal WKWebView begins loading a URL that it does not know how to respond to
+    /// Called when the internal UIWebView begins loading a URL that it does not know how to respond to
     /// For example, if there is an external link, and then the user taps it
     @objc optional func richEditor(_ editor: RichEditorView, shouldInteractWith url: URL) -> Bool
     
@@ -38,7 +37,7 @@ import WebKit
 }
 
 /// RichEditorView is a UIView that displays richly styled text, and allows it to be edited in a WYSIWYG fashion.
-@objcMembers open class RichEditorView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
+@objcMembers open class RichEditorView: UIView, UIScrollViewDelegate, UIWebViewDelegate, UIGestureRecognizerDelegate {
 
     // MARK: Public Properties
 
@@ -52,8 +51,8 @@ import WebKit
         set { webView.cjw_inputAccessoryView = newValue }
     }
 
-    /// The internal WKWebView that is used to display the text.
-    open private(set) var webView: WKWebView!
+    /// The internal UIWebView that is used to display the text.
+    open private(set) var webView: UIWebView
 
     /// Whether or not scroll is enabled on the view.
     open var isScrollEnabled: Bool = true {
@@ -124,31 +123,26 @@ import WebKit
     // MARK: Initialization
     
     public override init(frame: CGRect) {
+        webView = UIWebView()
         super.init(frame: frame)
         setup()
     }
 
     required public init?(coder aDecoder: NSCoder) {
+        webView = UIWebView()
         super.init(coder: aDecoder)
         setup()
     }
     
     private func setup() {
-        let configuration = WKWebViewConfiguration()
-        if #available(iOS 10.0, *) {
-            configuration.dataDetectorTypes = .all
-        }
-        
-        webView = WKWebView()
         backgroundColor = .red
         
         webView.frame = bounds
-        webView.navigationDelegate = self
-        
-//        webView.keyboardDisplayRequiresUserAction = false
-//        webView.scalesPageToFit = false
+        webView.delegate = self
+        webView.keyboardDisplayRequiresUserAction = false
+        webView.scalesPageToFit = false
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        webView.dataDetectorTypes = UIDataDetectorTypes()
+        webView.dataDetectorTypes = UIDataDetectorTypes()
         webView.backgroundColor = .white
         
         webView.scrollView.isScrollEnabled = isScrollEnabled
@@ -163,7 +157,7 @@ import WebKit
         if let filePath = Bundle(for: RichEditorView.self).path(forResource: "rich_editor", ofType: "html") {
             let url = URL(fileURLWithPath: filePath, isDirectory: false)
             let request = URLRequest(url: url)
-            webView.load(request)
+            webView.loadRequest(request)
         }
 
         tapRecognizer.addTarget(self, action: #selector(viewWasTapped))
@@ -348,19 +342,14 @@ import WebKit
         runJS("RE.blurFocus()")
     }
 
-    /// Runs some JavaScript on the WKWebView and returns the result
+    /// Runs some JavaScript on the UIWebView and returns the result
     /// If there is no result, returns an empty string
     /// - parameter js: The JavaScript string to be run
     /// - returns: The result of the JavaScript that was run
     @discardableResult
     public func runJS(_ js: String) -> String {
-        var evaluation = ""
-        webView.evaluate(script: js) { (result, error) in
-            if let result = result as? String {
-                evaluation = result
-            }
-        }
-        return evaluation
+        let string = webView.stringByEvaluatingJavaScript(from: js) ?? ""
+        return string
     }
 
 
@@ -375,6 +364,49 @@ import WebKit
             scrollView.bounds = webView.bounds
         }
     }
+
+
+    // MARK: UIWebViewDelegate
+
+    public func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
+
+        // Handle pre-defined editor actions
+        let callbackPrefix = "re-callback://"
+        if request.url?.absoluteString.hasPrefix(callbackPrefix) == true {
+            
+            // When we get a callback, we need to fetch the command queue to run the commands
+            // It comes in as a JSON array of commands that we need to parse
+            let commands = runJS("RE.getCommandQueue();")
+
+            if let data = commands.data(using: .utf8) {
+                
+                let jsonCommands: [String]
+                do {
+                    jsonCommands = try JSONSerialization.jsonObject(with: data) as? [String] ?? []
+                } catch {
+                    jsonCommands = []
+                    NSLog("RichEditorView: Failed to parse JSON Commands")
+                }
+
+                jsonCommands.forEach(performCommand)
+            }
+
+            return false
+        }
+        
+        // User is tapping on a link, so we should react accordingly
+        if navigationType == .linkClicked {
+            if let
+                url = request.url,
+                let shouldInteract = delegate?.richEditor?(self, shouldInteractWith: url)
+            {
+                return shouldInteract
+            }
+        }
+        
+        return true
+    }
+
 
     // MARK: UIGestureRecognizerDelegate
 
@@ -522,52 +554,4 @@ import WebKit
         return true
     }
 
-}
-
-// MARK: WKNavigationDelegate
-extension RichEditorView: WKNavigationDelegate {
-    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        // Handle pre-defined editor actions
-        let callbackPrefix = "re-callback://"
-        if webView.url?.absoluteString.hasPrefix(callbackPrefix) == true {
-            // When we get a callback, we need to fetch the command queue to run the commands
-            // It comes in as a JSON array of commands that we need to parse
-            let commands = runJS("RE.getCommandQueue();")
-            if let data = commands.data(using: .utf8) {
-                let jsonCommands: [String]
-                do {
-                    jsonCommands = try JSONSerialization.jsonObject(with: data) as? [String] ?? []
-                } catch {
-                    jsonCommands = []
-                    NSLog("RichEditorView: Failed to parse JSON Commands")
-                }
-                jsonCommands.forEach(performCommand)
-            }
-            decisionHandler(.cancel)
-            return
-        }
-        
-        // User is tapping on a link, so we should react accordingly
-        if navigationAction.navigationType == .linkActivated {
-            if let url = webView.url, let shouldInteract = delegate?.richEditor?(self, shouldInteractWith: url) {
-                let actionPolicy: WKNavigationActionPolicy = shouldInteract ? .allow : .cancel
-                decisionHandler(actionPolicy)
-            }
-        }
-        decisionHandler(.allow)
-    }
-}
-
-extension WKWebView {
-    func evaluate(script: String, completion: @escaping (Any?, Error?) -> Void) {
-        var finished = false
-        evaluateJavaScript(script, completionHandler: { (result, error) in
-            completion(result, error)
-            finished = true
-        })
-
-        while !finished {
-            RunLoop.current.run(mode: .default, before: .distantFuture)
-        }
-    }
 }

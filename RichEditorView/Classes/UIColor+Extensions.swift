@@ -6,7 +6,7 @@
 //
 //
 
-import UIKit
+import Foundation
 
 internal extension UIColor {
 
