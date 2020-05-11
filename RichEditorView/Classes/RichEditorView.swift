@@ -356,8 +356,12 @@ import WebKit
     public func runJS(_ js: String) -> String {
         var evaluation = ""
         webView.evaluate(script: js) { (result, error) in
-            if let result = result as? String {
-                evaluation = result
+            if let result = result {
+                if let value = result as? String {
+                    evaluation = value
+                } else {
+                    evaluation = String(describing: result)
+                }
             }
         }
         return evaluation
