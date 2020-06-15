@@ -47,8 +47,8 @@ import WebKit
     /// Input accessory view to display over they keyboard.
     /// Defaults to nil
     open override var inputAccessoryView: UIView? {
-        get { return webView.cjw_inputAccessoryView }
-        set { webView.cjw_inputAccessoryView = newValue }
+        get { return webView.getCustomInputAccessoryView() }
+        set { webView.addInputAccessoryView(toolbar: newValue) }
     }
 
     /// The internal WKWebView that is used to display the text.
@@ -559,19 +559,5 @@ extension RichEditorView: WKNavigationDelegate {
             }
         }
         decisionHandler(.allow)
-    }
-}
-
-extension WKWebView {
-    func evaluate(script: String, completion: @escaping (Any?, Error?) -> Void) {
-        var finished = false
-        evaluateJavaScript(script, completionHandler: { (result, error) in
-            completion(result, error)
-            finished = true
-        })
-
-        while !finished {
-            RunLoop.current.run(mode: .default, before: .distantFuture)
-        }
     }
 }

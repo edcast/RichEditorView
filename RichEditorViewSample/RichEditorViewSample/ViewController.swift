@@ -40,6 +40,9 @@ class ViewController: UIViewController {
         toolbar.options = options
     }
 
+    @objc func onToolbarDoneClick(sender: UIBarButtonItem) {
+        editorView.webView.resignFirstResponder()
+    }
 }
 
 extension ViewController: RichEditorDelegate {
