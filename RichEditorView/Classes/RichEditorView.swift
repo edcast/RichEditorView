@@ -146,19 +146,15 @@ import WebKit
         }
         
         webView = WKWebView(frame: bounds, configuration: configuration)
-        backgroundColor = .red
         
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        webView.backgroundColor = .white
         webView.navigationDelegate = self
         webView.scrollView.isScrollEnabled = isScrollEnabled
         webView.scrollView.bounces = false
         webView.scrollView.delegate = self
         webView.scrollView.clipsToBounds = false
-        
-        webView.cjw_inputAccessoryView = nil
-        
-        self.addSubview(webView)
+                
+        addSubview(webView)
         
         if let filePath = Bundle(for: RichEditorView.self).path(forResource: "rich_editor", ofType: "html") {
             let url = URL(fileURLWithPath: filePath, isDirectory: false)
@@ -430,7 +426,7 @@ import WebKit
     /// Called repeatedly to make sure the caret is always visible when inputting text.
     /// Works only if the `lineHeight` of the editor is available.
     private func scrollCaretToVisible() {
-        let scrollView = self.webView.scrollView
+        let scrollView = webView.scrollView
         
         let contentHeight = clientHeight > 0 ? CGFloat(clientHeight) : scrollView.frame.height
         scrollView.contentSize = CGSize(width: scrollView.frame.width, height: contentHeight)
@@ -549,15 +545,14 @@ extension RichEditorView: WKNavigationDelegate {
             }
             decisionHandler(.cancel)
             return
-        }
-        
-        // User is tapping on a link, so we should react accordingly
-        if navigationAction.navigationType == .linkActivated {
+        } else if navigationAction.navigationType == .linkActivated {
+            // User is tapping on a link, so we should react accordingly
             if let url = webView.url, let shouldInteract = delegate?.richEditor?(self, shouldInteractWith: url) {
                 let actionPolicy: WKNavigationActionPolicy = shouldInteract ? .allow : .cancel
                 decisionHandler(actionPolicy)
             }
+        } else {
+            decisionHandler(.allow)
         }
-        decisionHandler(.allow)
     }
 }
