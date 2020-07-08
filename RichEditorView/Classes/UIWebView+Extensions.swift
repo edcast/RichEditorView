@@ -11,7 +11,6 @@ var ToolbarHandle: UInt8 = 0
 
 extension WKWebView {
     func addInputAccessoryView(toolbar: UIView?) {
-        guard let toolbar = toolbar else { return }
         objc_setAssociatedObject(self, &ToolbarHandle, toolbar, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 
         var candidateView: UIView? = nil
