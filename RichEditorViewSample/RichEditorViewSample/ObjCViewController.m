@@ -10,6 +10,8 @@
 #import "RichEditorViewSample-Swift.h"
 
 @interface ObjCViewController() <RichEditorDelegate>
+@property (nonatomic) BOOL viewAppeared;
+@property (nonatomic) BOOL shouldFocus;
 @end
 
 @implementation ObjCViewController
@@ -33,6 +35,15 @@
     [self.keyboardManager stopMonitoring];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    self.viewAppeared = YES;
+    if (self.shouldFocus) {
+        self.shouldFocus = NO;
+        [self.editorView focus];
+    }
+}
+
 //------------------------------------------------------------------------------
 #pragma mark - RichEditorViewDelegate
 
@@ -41,6 +52,14 @@
         self.htmlTextView.text = @"HTML Preview";
     } else {
         self.htmlTextView.text = content;
+    }
+}
+
+- (void)richEditorDidLoad:(RichEditorView *)editor {
+    if (self.viewAppeared) {
+        [self.editorView focus];
+    } else {
+        self.shouldFocus = YES;
     }
 }
 

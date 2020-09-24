@@ -13,6 +13,9 @@ class ViewController: UIViewController {
 
     @IBOutlet var editorView: RichEditorView!
     @IBOutlet var htmlTextView: UITextView!
+    
+    private var viewAppeared: Bool = false
+    private var shouldFocus: Bool = false
 
     lazy var toolbar: RichEditorToolbar = {
         let toolbar = RichEditorToolbar(frame: CGRect(x: 0, y: 0, width: self.view.bounds.width, height: 44))
@@ -40,13 +43,36 @@ class ViewController: UIViewController {
         toolbar.options = options
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print("viewWillAppear")
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print("viewDidAppear")
+        viewAppeared = true
+        if shouldFocus {
+            shouldFocus = false
+            editorView.focus()
+        }
+    }
+    
     @objc func onToolbarDoneClick(sender: UIBarButtonItem) {
         editorView.webView.resignFirstResponder()
     }
 }
 
 extension ViewController: RichEditorDelegate {
-
+    func richEditorDidLoad(_ editor: RichEditorView) {
+        print("richEditorDidLoad")
+        if viewAppeared {
+            editorView.focus()
+        } else {
+            shouldFocus = true
+        }
+    }
+    
     func richEditor(_ editor: RichEditorView, contentDidChange content: String) {
         if content.isEmpty {
             htmlTextView.text = "HTML Preview"

@@ -146,6 +146,7 @@ import WebKit
         }
         
         webView = WKWebView(frame: bounds, configuration: configuration)
+        webView.setKeyboardRequiresUserInteraction(false)
         
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.navigationDelegate = self
