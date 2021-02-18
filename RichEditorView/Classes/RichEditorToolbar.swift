@@ -154,9 +154,9 @@ import UIKit
             }
             buttons.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
         }
-        if !buttons.isEmpty {
-            buttons.removeLast()
-        }
+//        if !buttons.isEmpty {
+//            buttons.removeLast()
+//        }
         toolbar.items = buttons
 
         let defaultIconWidth: CGFloat = 28
