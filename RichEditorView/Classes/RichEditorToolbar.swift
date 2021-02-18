@@ -83,6 +83,8 @@ import UIKit
         set { backgroundToolbar.barTintColor = newValue }
     }
 
+    open var moveItemsToRight: Bool = false
+
     private var toolbarScroll: UIScrollView
     private var toolbar: UIToolbar
     private var backgroundToolbar: UIToolbar
@@ -154,9 +156,12 @@ import UIKit
             }
             buttons.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
         }
-//        if !buttons.isEmpty {
-//            buttons.removeLast()
-//        }
+        if !buttons.isEmpty {
+            buttons.removeLast()
+        }
+        if moveItemsToRight {
+            buttons.insert(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil), at: 0)
+        }
         toolbar.items = buttons
 
         let defaultIconWidth: CGFloat = 28

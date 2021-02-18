@@ -466,7 +466,20 @@ import WebKit
                 isContentEditable = editingEnabledVar
                 placeholder = placeholderText
                 lineHeight = innerLineHeight
-                delegate?.richEditorDidLoad?(self)
+                let dispatchTime: DispatchTime
+                if #available(iOS 13.0, *) {
+                    dispatchTime = DispatchTime.now().advanced(by: DispatchTimeInterval.milliseconds(500))
+                    DispatchQueue.main.asyncAfter(deadline: dispatchTime) { [weak self] in
+                        guard let self = self else { return }
+                        self.delegate?.richEditorDidLoad?(self)
+                    }
+                } else {
+                    dispatchTime = DispatchTime.now() + 0.5
+                    DispatchQueue.main.asyncAfter(deadline: dispatchTime) { [weak self] in
+                        guard let self = self else { return }
+                        self.delegate?.richEditorDidLoad?(self)
+                    }
+                }
             }
             updateHeight()
         }

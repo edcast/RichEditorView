@@ -23,6 +23,17 @@ class ViewController: UIViewController {
         return toolbar
     }()
 
+    lazy var createOptionButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Create", for: .normal)
+        button.backgroundColor = .magenta
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 14.0)
+        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 20, bottom: 5, right: 20)
+        button.layer.cornerRadius = 5.0
+        return button
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -38,8 +49,12 @@ class ViewController: UIViewController {
             toolbar.editor?.html = ""
         }
 
-        var options = toolbar.options
+        var options: [RichEditorOption] = toolbar.options
         options.append(item)
+        options.append(RichEditorOptionItem(button: createOptionButton, title: "", tag: 001, action: { _ in
+            print("Create button tapped")
+        }))
+        toolbar.moveItemsToRight = true
         toolbar.options = options
     }
 
