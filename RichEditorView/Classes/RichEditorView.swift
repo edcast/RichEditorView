@@ -8,7 +8,7 @@
 import WebKit
 
 /// RichEditorDelegate defines callbacks for the delegate of the RichEditorView
-@objc public protocol RichEditorDelegate: class {
+@objc public protocol RichEditorDelegate: AnyObject {
 
     /// Called when the inner height of the text being displayed changes
     /// Can be used to update the UI
@@ -67,6 +67,13 @@ import WebKit
         set { isContentEditable = newValue }
     }
 
+    open var editingTextColor: String = "666666" {
+        didSet {
+            if webView != nil {
+                loadHTML(colorHex: editingTextColor)
+            }
+        }
+    }
     /// The content HTML of the text being displayed.
     /// Is continually updated as the text is being edited.
     open private(set) var contentHTML: String = "" {
@@ -157,11 +164,7 @@ import WebKit
                 
         addSubview(webView)
         
-        if let filePath = Bundle(for: RichEditorView.self).path(forResource: "rich_editor", ofType: "html") {
-            let url = URL(fileURLWithPath: filePath, isDirectory: false)
-            let request = URLRequest(url: url)
-            webView.load(request)
-        }
+        loadHTML(colorHex: editingTextColor)
 
         tapRecognizer.addTarget(self, action: #selector(viewWasTapped))
         tapRecognizer.delegate = self
@@ -169,6 +172,28 @@ import WebKit
     }
 
     // MARK: - Rich Text Editing
+    private func loadHTML(colorHex: String? = nil) {
+        if let filePath = Bundle(for: RichEditorView.self).path(forResource: "rich_editor", ofType: "html") {
+            let url = URL(fileURLWithPath: filePath, isDirectory: false)
+            do {
+                var string = try String(contentsOf: url)
+                var textColor: String = "666666"
+                if let colorHex = colorHex, !colorHex.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty {
+                    var colorString = colorHex
+                    if colorString.hasPrefix("#") {
+                        colorString = String(colorString.dropFirst())
+                    }
+                    if colorString.count == 6 {
+                        textColor = colorString
+                    }
+                }
+                string = string.replacingOccurrences(of: "{RTE_EDITING_COLOR}", with: textColor)
+                webView.loadHTMLString(string, baseURL: url)
+            } catch {
+                print(error)
+            }
+        }
+    }
 
     // MARK: Properties
 

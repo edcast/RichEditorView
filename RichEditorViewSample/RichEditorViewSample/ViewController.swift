@@ -11,7 +11,11 @@ import RichEditorView
 
 class ViewController: UIViewController {
 
-    @IBOutlet var editorView: RichEditorView!
+    @IBOutlet var editorView: RichEditorView! {
+        didSet {
+            editorView.editingTextColor = "#FF0000"
+        }
+    }
     @IBOutlet var htmlTextView: UITextView!
     
     private var viewAppeared: Bool = false
